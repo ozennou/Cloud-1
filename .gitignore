@@ -1,0 +1,6 @@
+infra/credentials.json
+*terraform.*
+*.terraform*
+/.vscode
+/infra/ssh_key
+/srcs/.env

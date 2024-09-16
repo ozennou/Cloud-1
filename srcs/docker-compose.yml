@@ -1,0 +1,99 @@
+networks:
+  services_net:
+    name: services_net
+    driver: bridge
+    driver_opts:
+      encrypted: 'yes'
+
+volumes:
+  db_volume:
+    name: db_volume
+    driver_opts:
+      type: bind
+      o: bind
+      device: /home/amine/data/mariadb
+  wp_volume:
+    name: wp_volume
+    driver_opts:
+      type: bind
+      o: bind
+      device: /home/amine/data/wp
+
+services:
+  mariadb:
+    build: ./requirements/mariadb/
+    image: "mariadb:inception"
+    container_name: mariadb
+    networks:
+      - services_net
+    volumes:
+      - "db_volume:/var/lib/mysql"
+    environment:
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_USER_PASSWD=${DB_USER_PASSWD}
+    restart: unless-stopped
+  wordpress:
+    build: ./requirements/wordpress/
+    image: "wordpress:inception"
+    container_name: wordpress
+    networks:
+      - services_net
+    volumes:
+      - "wp_volume:/var/www"
+    environment:
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_USER_PASSWD=${DB_USER_PASSWD}
+      - DOMAINNAME=${DOMAINNAME}
+      - WP_ADMIN=${WP_ADMIN}
+      - WP_ADMIN_PASSWD=${WP_ADMIN_PASSWD}
+      - WP_ADMIN_MAIL=${WP_ADMIN_MAIL}
+      - WP_USER=${WP_USER}
+      - WP_USER_PASSWD=${WP_USER_PASSWD}
+      - WP_USER_MAIL=${WP_USER_MAIL}
+      - TITLE=${TITLE}
+      - REDIS_PASSWD=${REDIS_PASSWD}
+    restart: unless-stopped
+    depends_on: 
+      - mariadb
+      - redis-cache
+  nginx:
+    build: ./requirements/nginx/
+    image: "nginx:inception"
+    container_name: nginx
+    networks:
+      - services_net
+    volumes:
+      - "wp_volume:/var/www"
+    environment:
+      - HOSTNAME=${HOSTNAME}
+      - CRT_PATH=${CRT_PATH}
+    restart: unless-stopped
+    depends_on: 
+      - wordpress
+    ports:
+      - "443:443"
+######
+#bonus part
+  redis-cache:
+    build: ./requirements/bonus/redis-cache
+    image: "redis-cache:inception"
+    container_name: redis-cache
+    networks:
+      - services_net
+    environment:
+      - REDIS_PASSWD=${REDIS_PASSWD}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWD}", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  adminer:
+    build: ./requirements/bonus/adminer
+    image: "adminer:inception"
+    container_name: adminer
+    networks:
+      - services_net
+    restart: unless-stopped
