@@ -3,9 +3,9 @@
 ### Overview:
 - The project is based on my previous project [Containerize-wordpress-infrastructure](https://github.com/ozennou/containerize-wordpress-infra). This project is a simple deployment of a WordPress infrastructure based on microservices (MariaDB, WordPress, Nginx, Redis-cache, Adminer) on GCP (Google Cloud Platform), using HashiCorp Terraform for deploying and describing the infrastructure.
 
-<div style="text-align: center;">
+
     <img src="./resource/image.png" alt="arch" width="700" height="400">
-</div>
+
 
 ### Infrastructure:
 - **VPC Network and its Subnet**:
